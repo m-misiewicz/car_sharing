@@ -98,7 +98,7 @@ public class Main {
 
                     break;
                 case 3:
-                    checkRentStatus(customer, customerDAO);
+                    checkRentStatus(customer, customerDAO, carDAO);
                     break;
                 case 0:
                     // Back to the main menu
@@ -122,15 +122,24 @@ public class Main {
     }
 
     private static void carChoiceMenu(Scanner scanner, Customer customer, CustomerDAO customerDAO, Company company, CompanyDAO companyDAO, CarDAO carDAO) throws SQLException {
-        displayCarList(carDAO.getCarsByCompany(company.getID()), true);
+        List<Car> carList= carDAO.getCarsByCompany(company.getID());
+        displayCarList(carList, true);
+        int customerChoice = getUserChoice(scanner);
+        if (customerChoice == 0) {
+            return;
+        }
+        Car car = carList.get(customerChoice - 1);
+        customerDAO.updateRentedCar(customer.getID(), car.getID());
+        System.out.println("You rented '" + car.getName() + "'");
     }
 
-    private static void checkRentStatus(Customer customer, CustomerDAO customerDAO) throws SQLException {
+    private static void checkRentStatus(Customer customer, CustomerDAO customerDAO, CarDAO carDAO) throws SQLException {
 
-        Integer rentedCarID = customerDAO.findRentedCar(customer.getID());
+        Integer rentedCarID = customerDAO.findRentedCarID(customer.getID());
         if (rentedCarID == 0) {
             System.out.println("You didn't rent a car!");
         }
+        Car rentedCar = carDAO.findById(rentedCarID);
         System.out.println(rentedCarID);
 
     }
@@ -247,6 +256,7 @@ public class Main {
     private static void displayCarList(List<Car> cars, boolean custMode) {
         if (cars.isEmpty()) {
             System.out.println("The car list is empty!");
+
         }
         else {
             if (custMode) {
@@ -263,6 +273,7 @@ public class Main {
                 System.out.println("0. Back");
             }
         }
+
     }
 
     private static void displayCompanyMenu() {

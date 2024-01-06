@@ -11,6 +11,8 @@ public interface CustomerDAO {
 
     Customer findById(Integer customerID) throws SQLException;
 
-    Integer findRentedCar(Integer customerID) throws SQLException;
+    Integer findRentedCarID(Integer customerID) throws SQLException;
+
+    void updateRentedCar(int customerId, Integer rentedCarId) throws SQLException;
 
 }

@@ -43,5 +43,23 @@ public class CarDAOImpl implements CarDAO {
         }
         return cars;
     }
+
+    @Override
+    public Car findById(int carID) throws SQLException {
+        String sql = "SELECT * FROM CAR WHERE ID = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, carID);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    int id = resultSet.getInt("ID");
+                    String name = resultSet.getString("NAME");
+                    return new Car(id, name);
+                }
+            }
+        }
+        return null;
+    }
+
+
 }
 

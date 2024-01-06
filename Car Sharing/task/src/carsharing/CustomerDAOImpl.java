@@ -57,7 +57,7 @@ public class CustomerDAOImpl implements  CustomerDAO {
     }
 
     @Override
-    public Integer findRentedCar(Integer customerID) throws SQLException {
+    public Integer findRentedCarID(Integer customerID) throws SQLException {
         String sql = "SELECT RENTED_CAR_ID FROM CUSTOMER WHERE ID = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, customerID);
@@ -68,6 +68,16 @@ public class CustomerDAOImpl implements  CustomerDAO {
             }
         }
         return null;
+    }
+
+    @Override
+    public void updateRentedCar(int customerId, Integer rentedCarId) throws SQLException {
+        String sql = "UPDATE CUSTOMER SET RENTED_CAR_ID = ? WHERE ID = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setObject(1, rentedCarId);  // Use setObject to handle null values
+            statement.setInt(2, customerId);
+            statement.executeUpdate();
+        }
     }
 
 }
