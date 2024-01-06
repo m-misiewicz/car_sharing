@@ -41,7 +41,7 @@ public class CustomerDAOImpl implements  CustomerDAO {
     }
 
     @Override
-    public Customer findById(int customerID) throws SQLException {
+    public Customer findById(Integer customerID) throws SQLException {
         String sql = "SELECT * FROM CUSTOMER WHERE ID = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, customerID);
@@ -50,6 +50,20 @@ public class CustomerDAOImpl implements  CustomerDAO {
                     int id = resultSet.getInt("ID");
                     String name = resultSet.getString("NAME");
                     return new Customer(id, name);
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Integer findRentedCar(Integer customerID) throws SQLException {
+        String sql = "SELECT RENTED_CAR_ID FROM CUSTOMER WHERE ID = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, customerID);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("RENTED_CAR_ID");
                 }
             }
         }

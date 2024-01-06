@@ -8,9 +8,9 @@ public class TableCreator {
 
     public static void createTables(Connection connection) {
         try (Statement statement = connection.createStatement()) {
-            statement.execute("DROP TABLE IF EXISTS CUSTOMER");
-            statement.execute("DROP TABLE IF EXISTS CAR");
-            statement.execute("DROP TABLE IF EXISTS COMPANY");
+//            statement.execute("DROP TABLE IF EXISTS CUSTOMER");
+//            statement.execute("DROP TABLE IF EXISTS CAR");
+//            statement.execute("DROP TABLE IF EXISTS COMPANY");
 
             // Create the COMPANY table
             String createTableCompany = "CREATE TABLE IF NOT EXISTS COMPANY (" +

@@ -9,5 +9,8 @@ public interface CustomerDAO {
 
     List<Customer> findAll() throws SQLException;
 
-    Customer findById(int customerID) throws SQLException;
+    Customer findById(Integer customerID) throws SQLException;
+
+    Integer findRentedCar(Integer customerID) throws SQLException;
+
 }

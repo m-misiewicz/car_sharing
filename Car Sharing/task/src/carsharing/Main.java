@@ -40,7 +40,7 @@ public class Main {
                         handleManagerMenu(scanner, companyDAO, carDAO);
                         break;
                     case 2:
-                        handleCustomerLoginMenu(scanner, customerDAO);
+                        handleCustomerLoginMenu(scanner, customerDAO, companyDAO, carDAO);
                         break;
                     case 3:
                         handleCustomerCreation(scanner, customerDAO);
@@ -72,7 +72,7 @@ public class Main {
         }
     }
 
-    private static void handleCustomerLoginMenu(Scanner scanner, CustomerDAO customerDAO) throws SQLException {
+    private static void handleCustomerLoginMenu(Scanner scanner, CustomerDAO customerDAO, CompanyDAO companyDAO, CarDAO carDAO) throws SQLException {
         int numberCustomers = displayCustomerListMenu(customerDAO.findAll());
         if (numberCustomers == 0) {
             return;
@@ -82,22 +82,23 @@ public class Main {
             return;
         }
         Customer customer = customerDAO.findById(customerChoice);
-        handleCustomerMenu(scanner);
+        handleCustomerMenu(scanner, customer, customerDAO, companyDAO, carDAO);
         
     }
 
-    private static void handleCustomerMenu(Scanner scanner, CustomerDAO customerDAO) {
+    private static void handleCustomerMenu(Scanner scanner, Customer customer, CustomerDAO customerDAO, CompanyDAO companyDAO, CarDAO carDAO) throws SQLException {
         while (true) {
             displayCustomerMenu();
             int customerChoice = getUserChoice(scanner);
             switch (customerChoice) {
                 case 1:
-                    // Company list
-
+                    rentCar(scanner, customer, customerDAO, companyDAO, carDAO);
                     break;
                 case 2:
-                    // Create a company
-                    createNewCompany(scanner, companyDAO);
+
+                    break;
+                case 3:
+                    checkRentStatus(customer, customerDAO);
                     break;
                 case 0:
                     // Back to the main menu
@@ -107,8 +108,30 @@ public class Main {
             }
 
         }
+    }
 
+    private static void rentCar(Scanner scanner, Customer customer, CustomerDAO customerDAO, CompanyDAO companyDAO, CarDAO carDAO) throws SQLException {
+        displayCompanyList(companyDAO.findAll());
+        int customerChoice = getUserChoice(scanner);
+        if (customerChoice == 0) {
+            return;
+        }
+        Company company = companyDAO.findById(customerChoice);
+        carChoiceMenu(scanner, customer, customerDAO, company, companyDAO, carDAO);
 
+    }
+
+    private static void carChoiceMenu(Scanner scanner, Customer customer, CustomerDAO customerDAO, Company company, CompanyDAO companyDAO, CarDAO carDAO) throws SQLException {
+        displayCarList(carDAO.getCarsByCompany(company.getID()), true);
+    }
+
+    private static void checkRentStatus(Customer customer, CustomerDAO customerDAO) throws SQLException {
+
+        Integer rentedCarID = customerDAO.findRentedCar(customer.getID());
+        if (rentedCarID == 0) {
+            System.out.println("You didn't rent a car!");
+        }
+        System.out.println(rentedCarID);
 
     }
 
@@ -131,6 +154,7 @@ public class Main {
                 System.out.println(customer.getID() + ". " + customer.getName());
                 count++;
             }
+            System.out.println("0. Back");
         }
         return customers.size();
     }
@@ -204,7 +228,7 @@ public class Main {
             int userChoice = getUserChoice(scanner);
             switch (userChoice) {
                 case 1:
-                    displayCarList(carDAO.getCarsByCompany(company.getID()));
+                    displayCarList(carDAO.getCarsByCompany(company.getID()), false);
                     continue;
                 case 2:
                     createNewCar(scanner, carDAO, company.getID());
@@ -220,16 +244,23 @@ public class Main {
 
     }
 
-    private static void displayCarList(List<Car> cars) {
+    private static void displayCarList(List<Car> cars, boolean custMode) {
         if (cars.isEmpty()) {
             System.out.println("The car list is empty!");
         }
         else {
-            System.out.println("Car list:");
+            if (custMode) {
+                System.out.println("Choose a car:");
+            } else {
+                System.out.println("Car list:");
+            }
             int count = 1;
             for (Car car : cars) {
                 System.out.println(count + ". " + car.getName());
                 count++;
+            }
+            if (custMode) {
+                System.out.println("0. Back");
             }
         }
     }
@@ -249,7 +280,7 @@ public class Main {
             return 0;
         }
         else {
-            System.out.println("Choose the company:");
+            System.out.println("Choose a company:");
             for (Company company : companies) {
                 System.out.println(company.getID() + ". " + company.getName());
             }
