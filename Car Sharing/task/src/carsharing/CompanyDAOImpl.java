@@ -27,21 +27,6 @@ public class CompanyDAOImpl implements CompanyDAO {
     }
 
     @Override
-    public Company findByName(String companyName) throws SQLException {
-        String sql = "SELECT * FROM COMPANY WHERE NAME = ?";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, companyName);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    int id = resultSet.getInt("ID");
-                    return new Company(id, companyName);
-                }
-            }
-        }
-        return null;
-    }
-
-    @Override
     public List<Company> findAll() throws SQLException {
         List<Company> companies = new ArrayList<>();
         String sql = "SELECT * FROM COMPANY";

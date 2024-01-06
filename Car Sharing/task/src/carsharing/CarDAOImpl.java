@@ -28,7 +28,7 @@ public class CarDAOImpl implements CarDAO {
     public List<Car> getCarsByCompany(int companyID) throws SQLException {
 
         List<Car> cars = new ArrayList<>();
-        String sql = "SELECT * FROM CAR WHERE COMPANY_ID = ?";
+        String sql = "SELECT * FROM CAR WHERE COMPANY_ID = ? AND IS_RENTED = FALSE";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, companyID);  // Set the parameter dynamically
@@ -58,6 +58,32 @@ public class CarDAOImpl implements CarDAO {
             }
         }
         return null;
+    }
+
+    @Override
+    public Integer getCompanyIdByCarId(int carId) throws SQLException {
+
+        String sql = "SELECT COMPANY_ID FROM CAR WHERE ID = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, carId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("COMPANY_ID");
+                }
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public void updateCarStatus(int carId, boolean isRented) throws SQLException {
+        String sql = "UPDATE CAR SET IS_RENTED = ? WHERE ID = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setBoolean(1, isRented);
+            statement.setInt(2, carId);
+            statement.executeUpdate();
+        }
     }
 
 

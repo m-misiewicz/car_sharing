@@ -10,8 +10,6 @@ public class Customer {
 
     private final int ID;
 
-    private Integer rentedCarID = null;
-
     public Customer(int ID, String name) {
         this.name = name;
         this.ID = ID;

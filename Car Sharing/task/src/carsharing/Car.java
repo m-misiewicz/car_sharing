@@ -14,7 +14,6 @@ public class Car {
         this.name = name;
         this.ID = ID;
     }
-
     public String getName() {
         return name;
     }

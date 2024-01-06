@@ -12,23 +12,15 @@ public class Main {
     public static void main(String[] args) {
 
         String databaseFileName = getDatabaseFileName(args);
-
-        // Construct the database URL
         String databaseURL = "jdbc:h2:./src/carsharing/db/" + databaseFileName;
 
         try (Connection connection = DriverManager.getConnection(databaseURL)) {
-            // Enable auto-commit mode
             connection.setAutoCommit(true);
-
-            // Create the COMPANY table
             TableCreator.createTables(connection);
-
             CompanyDAO companyDAO = new CompanyDAOImpl(connection);
             CarDAO carDAO = new CarDAOImpl(connection);
             CustomerDAO customerDAO = new CustomerDAOImpl(connection);
-
             Scanner scanner = new Scanner(System.in);
-
 
             while (true) {
                 displayMainMenu();
@@ -36,7 +28,6 @@ public class Main {
 
                 switch (mainChoice) {
                     case 1:
-                        // Log in as a manager
                         handleManagerMenu(scanner, companyDAO, carDAO);
                         break;
                     case 2:
@@ -52,12 +43,9 @@ public class Main {
                         System.out.println("Invalid choice. Please choose a valid option.");
                 }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-
     }
 
     private static void handleCustomerCreation(Scanner scanner, CustomerDAO customerDAO) {
@@ -83,7 +71,6 @@ public class Main {
         }
         Customer customer = customerDAO.findById(customerChoice);
         handleCustomerMenu(scanner, customer, customerDAO, companyDAO, carDAO);
-        
     }
 
     private static void handleCustomerMenu(Scanner scanner, Customer customer, CustomerDAO customerDAO, CompanyDAO companyDAO, CarDAO carDAO) throws SQLException {
@@ -95,13 +82,12 @@ public class Main {
                     rentCar(scanner, customer, customerDAO, companyDAO, carDAO);
                     break;
                 case 2:
-
+                    returnCar(customer, customerDAO, carDAO);
                     break;
                 case 3:
-                    checkRentStatus(customer, customerDAO, carDAO);
+                    checkRentStatus(customer, customerDAO, companyDAO, carDAO);
                     break;
                 case 0:
-                    // Back to the main menu
                     return;
                 default:
                     System.out.println("Invalid choice. Please choose a valid option.");
@@ -110,18 +96,37 @@ public class Main {
         }
     }
 
+    private static void returnCar(Customer customer, CustomerDAO customerDAO, CarDAO carDAO) throws SQLException {
+        Integer rentedCarID = customerDAO.findRentedCarID(customer.getID());
+        Car rentedCar = carDAO.findById(rentedCarID);
+        if (rentedCar != null) {
+            customerDAO.updateRentedCar(customer.getID(), null);
+            System.out.println("You've returned a rented car!");
+            carDAO.updateCarStatus(rentedCarID, false);
+        } else {
+            System.out.println("You didn't rent a car!");
+        }
+    }
+
     private static void rentCar(Scanner scanner, Customer customer, CustomerDAO customerDAO, CompanyDAO companyDAO, CarDAO carDAO) throws SQLException {
+        int customerID = customer.getID();
+        int carID = customerDAO.findRentedCarID(customerID);
+        Car rentedCar = carDAO.findById(carID);
+        if (rentedCar != null) {
+            System.out.println("You've already rented a car!");
+            return;
+        }
         displayCompanyList(companyDAO.findAll());
         int customerChoice = getUserChoice(scanner);
         if (customerChoice == 0) {
             return;
         }
         Company company = companyDAO.findById(customerChoice);
-        carChoiceMenu(scanner, customer, customerDAO, company, companyDAO, carDAO);
+        carChoiceMenu(scanner, customer, customerDAO, company, carDAO);
 
     }
 
-    private static void carChoiceMenu(Scanner scanner, Customer customer, CustomerDAO customerDAO, Company company, CompanyDAO companyDAO, CarDAO carDAO) throws SQLException {
+    private static void carChoiceMenu(Scanner scanner, Customer customer, CustomerDAO customerDAO, Company company, CarDAO carDAO) throws SQLException {
         List<Car> carList= carDAO.getCarsByCompany(company.getID());
         displayCarList(carList, true);
         int customerChoice = getUserChoice(scanner);
@@ -130,18 +135,23 @@ public class Main {
         }
         Car car = carList.get(customerChoice - 1);
         customerDAO.updateRentedCar(customer.getID(), car.getID());
+        carDAO.updateCarStatus(car.getID(), true);
         System.out.println("You rented '" + car.getName() + "'");
     }
 
-    private static void checkRentStatus(Customer customer, CustomerDAO customerDAO, CarDAO carDAO) throws SQLException {
+    private static void checkRentStatus(Customer customer, CustomerDAO customerDAO, CompanyDAO companyDAO, CarDAO carDAO) throws SQLException {
 
         Integer rentedCarID = customerDAO.findRentedCarID(customer.getID());
-        if (rentedCarID == 0) {
+        Integer companyID = carDAO.getCompanyIdByCarId(rentedCarID);
+        Car rentedCar = carDAO.findById(rentedCarID);
+        if (rentedCar != null) {
+            System.out.println("Your rented car:");
+            System.out.println(rentedCar.getName());
+            System.out.println("Company:");
+            System.out.println(companyDAO.findById(companyID).getName());
+        } else {
             System.out.println("You didn't rent a car!");
         }
-        Car rentedCar = carDAO.findById(rentedCarID);
-        System.out.println(rentedCarID);
-
     }
 
     private static void displayCustomerMenu() {
@@ -158,10 +168,8 @@ public class Main {
         }
         else {
             System.out.println("Customer list:");
-            int count = 1;
             for (Customer customer : customers) {
                 System.out.println(customer.getID() + ". " + customer.getName());
-                count++;
             }
             System.out.println("0. Back");
         }
@@ -183,18 +191,14 @@ public class Main {
         while (true) {
             displayManagerMenu();
             int managerChoice = getUserChoice(scanner);
-
             switch (managerChoice) {
                 case 1:
-                    // Company list
                     handleCompanyListMenu(scanner, companyDAO, carDAO);
                     break;
                 case 2:
-                    // Create a company
                     createNewCompany(scanner, companyDAO);
                     break;
                 case 0:
-                    // Back to the main menu
                     return;
                 default:
                     System.out.println("Invalid choice. Please choose a valid option.");
@@ -238,25 +242,21 @@ public class Main {
             switch (userChoice) {
                 case 1:
                     displayCarList(carDAO.getCarsByCompany(company.getID()), false);
-                    continue;
+                    break;
                 case 2:
                     createNewCar(scanner, carDAO, company.getID());
-                    continue;
+                    break;
                 case 0:
                     return;
                 default:
                     System.out.println("Invalid choice. Please choose a valid option.");
             }
         }
-
-
-
     }
 
     private static void displayCarList(List<Car> cars, boolean custMode) {
         if (cars.isEmpty()) {
             System.out.println("The car list is empty!");
-
         }
         else {
             if (custMode) {
@@ -277,15 +277,12 @@ public class Main {
     }
 
     private static void displayCompanyMenu() {
-
         System.out.println("1. Car list");
         System.out.println("2. Create a car");
         System.out.println("0. Back");
     }
 
     private static int displayCompanyList(List<Company> companies) {
-
-
         if (companies.isEmpty()) {
             System.out.println("The company list is empty!");
             return 0;
@@ -299,7 +296,6 @@ public class Main {
             return companies.size();
         }
     }
-
 
     private static void createNewCompany(Scanner scanner, CompanyDAO companyDAO) {
         scanner.nextLine();
@@ -320,7 +316,6 @@ public class Main {
         try {
             carDAO.addCar(carName, companyID);
             System.out.println("The car was added!");
-//            System.out.println("");
         } catch (SQLException e) {
             System.out.println("Error creating the company: " + e.getMessage());
         }
@@ -329,9 +324,8 @@ public class Main {
     private static int getUserChoice(Scanner scanner) {
         while (!scanner.hasNextInt()) {
             System.out.println("Invalid input. Please enter a number.");
-            scanner.next(); // Consume the invalid input
+            scanner.next();
         }
         return scanner.nextInt();
     }
-
 }
